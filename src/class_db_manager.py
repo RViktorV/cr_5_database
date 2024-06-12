@@ -1,25 +1,148 @@
 import psycopg2
+from config import config
+from tabulate import tabulate
 
-class DBManager():
-    """Класс для работы с данными в базе данных"""
+class DBManager:
+    """
+    Класс для работы с базой данных PostgreSQL, содержащей информацию о работодателях и вакансиях.
+    """
+
+    def __init__(self):
+        """
+        Инициализация DBManager. Подключается к базе данных, используя параметры из файла конфигурации.
+        """
+        self.params = config()
+        self.conn = psycopg2.connect(**self.params)
+        self.cur = self.conn.cursor()
+
+    def get_companies_and_vacancies_count(self):
+        """
+        Получает список всех компаний, их ID и количество вакансий у каждой компании.
+        :return: Список кортежей (ID компании, название компании, количество вакансий).
+        """
+        self.cur.execute("""
+            SELECT e.id, e.name, COUNT(v.id) as vacancies_count
+            FROM employers e
+            LEFT JOIN vacancies v ON e.id = v.employer_id
+            GROUP BY e.id, e.name
+        """)
+        return self.cur.fetchall()
+
+    def get_all_vacancies(self):
+        """
+        Получает список всех вакансий с указанием названия компании, названия вакансии и зарплаты и ссылки на вакансию.
+        :return: Список кортежей (название компании, название вакансии, зарплата от, зарплата до, URL).
+        """
+        self.cur.execute("""
+            SELECT e.name, v.name, v.salary_from, v.salary_to, v.url
+            FROM vacancies v
+            JOIN employers e ON e.id = v.employer_id
+        """)
+        return self.cur.fetchall()
+
+    def get_avg_salary(self):
+        """
+        Получает среднюю зарплату по вакансиям.
+        :return: Средняя зарплата.
+        """
+        self.cur.execute("""
+            SELECT AVG((salary_from + salary_to) / 2)
+            FROM vacancies
+            WHERE salary_from IS NOT NULL AND salary_to IS NOT NULL
+        """)
+        return self.cur.fetchone()[0]
+
+    def get_vacancies_with_higher_salary(self):
+        """
+        Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям.
+        :return: Список кортежей (название компании, название вакансии, зарплата от, зарплата до, URL).
+        """
+        avg_salary = self.get_avg_salary()
+        self.cur.execute("""
+            SELECT e.name, v.name, v.salary_from, v.salary_to, v.url
+            FROM vacancies v
+            JOIN employers e ON e.id = v.employer_id
+            WHERE (salary_from + salary_to) / 2 > %s
+        """, (avg_salary,))
+        return self.cur.fetchall()
+
+    def get_vacancies_with_keyword(self, keyword):
+        """
+        Получает список всех вакансий, в названии которых содержатся переданные в метод слова.
+        :param keyword: Ключевое слово для поиска в названии вакансий.
+        :return: Список кортежей (название компании, название вакансии, зарплата от, зарплата до, URL).
+        """
+        self.cur.execute("""
+            SELECT e.name, v.name, v.salary_from, v.salary_to, v.url
+            FROM vacancies v
+            JOIN employers e ON e.id = v.employer_id
+            WHERE v.name ILIKE %s
+        """, (f'%{keyword}%',))
+        return self.cur.fetchall()
 
 
-    def get_companies_and_vacancies_count():
-        """Получает список всех компаний и количество вакансий у каждой компании"""
-        pass
+    def print_select(self, query):
+        """
+        Метод выводит результаты запроса в виде таблицы
+        :param query:
+        :return:
+        """
+        with self.conn.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            colnames = [desc[0] for desc in cursor.description]
 
-    def get_all_vacancies():
-        """Получает список всех вакансий с указанием названия компании,
-        названия вакансии и зарплаты и ссылки на вакансию"""
-        pass
+        table = tabulate(results, headers=colnames, tablefmt="grid")
+        return '\n' + table
 
-    def get_avg_salary():
-        """Получает среднюю зарплату по вакансиям"""
-        pass
 
-    def get_vacancies_with_higher_salary():
-        """Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям"""
-        pass
+    def print_companies_and_vacancies_count(self):
+        """
+        Метод выводит компании и количество вакансий в виде таблицы.
+        """
+        results = self.get_companies_and_vacancies_count()
+        colnames = ["Company ID", "Company", "Vacancies Count"]
 
-    def get_vacancies_with_keyword():
-        """Получает список всех вакансий, в названии которых содержатся переданные в метод слова, например python"""
+        table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
+        return table
+
+
+    def print_all_vacancies(self):
+        """
+        Метод выводит св виден таблицы писок всех вакансий с указанием названия компании,
+        названия вакансии и зарплаты и ссылки на вакансию.
+        """
+        results = self.get_all_vacancies()
+        colnames = ['Company Name', 'Job Title', 'salary from', 'salary up to', 'URL']
+
+        table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
+        return table
+
+
+    def print_vacancies_with_higher_salary(self):
+        """
+        Метод выводит в виден таблицы вакансий, у которых зарплата выше средней по всем вакансиям.
+        """
+        results = self.get_vacancies_with_higher_salary()
+        colnames = ['Company Name', 'Job Title', 'salary from', 'salary up to', 'URL']
+
+        table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
+        return table
+
+    def print_vacancies_with_keyword(self):
+        """
+        Метод выводит в виден таблицы вакансий, в названии которых содержатся переданные в метод ключевое слово
+        """
+        results = self.get_vacancies_with_keyword('developer')
+        colnames = ['Company Name', 'Job Title', 'salary from', 'salary up to', 'URL']
+
+        table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
+        return table
+
+    def close(self):
+        """
+        Закрывает соединение с базой данных.
+        """
+        self.cur.close()
+        self.conn.close()
+
