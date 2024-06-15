@@ -1,7 +1,6 @@
 from configparser import ConfigParser
 import os
 
-
 ROOT_DIR = os.path.dirname(__file__)
 
 # Список ID компаний (employer_id)
@@ -16,15 +15,9 @@ employer_ids = [
     '3529', # СБЕР
     '78638',  # Тинькофф
     '1440683',  # RUTUBE
-    # '1375441',  # Okko
-    # '4934', # БИЛАЙН
-    # '39305',  # Газпром нефть
-    # '4181', # Банк ВТБ (ПАО)
-    # '54979', # АШАН Ритейл Россия
-    # '3127',  # МегаФон
-    # '4219',  # TEL2
-    # '852361',  # Ростелеком
+
 ]
+
 def config(filename="database.ini", section="postgresql"):
     # create a parser
     parser = ConfigParser()
