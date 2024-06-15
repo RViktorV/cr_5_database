@@ -15,7 +15,6 @@ employer_ids = [
     '3529', # СБЕР
     '78638',  # Тинькофф
     '1440683',  # RUTUBE
-
 ]
 
 def config(filename="database.ini", section="postgresql"):
