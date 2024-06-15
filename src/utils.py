@@ -1,7 +1,8 @@
 import requests
 from config import config
-from config import employer_ids
 import psycopg2
+import sys
+import time
 
 
 def get_employers(employer_ids):
@@ -35,8 +36,10 @@ def get_vacancies(employer_id):
     else:
         raise Exception(f"Error {response.status_code}: {response.text}")
 
+
 def create_tables():
     """Создает таблицы employers и vacancies в базе данных."""
+    global conn
     params = config()
     try:
         conn = psycopg2.connect(**params)
@@ -74,8 +77,10 @@ def create_tables():
         if conn:
             conn.close()
 
+
 def add_description_column():
     """Добавляет столбец description в таблицу vacancies, если его еще нет."""
+    global conn
     params = config()
     try:
         conn = psycopg2.connect(**params)
@@ -132,20 +137,13 @@ def load_vacancies_to_db(vacancies, conn):
     conn.commit()
 
 
-# def search_employers(query, count=10):
-#     """
-#     Ищет работодателей по заданному запросу и возвращает их ID и названия.
-#
-#     :param query: Поисковый запрос (например, название компании или ключевые слова).
-#     :param count: Количество работодателей для получения.
-#     :return: Список кортежей (ID работодателя, название компании).
-#     """
-#     url = 'https://api.hh.ru/employers'
-#     params = {'text': query, 'per_page': count}
-#     response = requests.get(url, params=params)
-#     if response.status_code == 200:
-#         employers = response.json()['items']
-#         return [(employer['id'], employer['name']) for employer in employers]
-#     else:
-#         raise Exception(f"Error {response.status_code}: {response.text}")
-
+def progress_bar(total):
+    '''Функция вывода на экран прогресс бара загрузки вакансий'''
+    bar_length = 50
+    for i in range(total + 1):
+        progress = i / total
+        bar = '[' + '#' * int(progress * bar_length) + ' ' * (bar_length - int(progress * bar_length)) + ']'
+        sys.stdout.write('\rЗагрузка: {}% {}'.format(int(progress * 100), bar))
+        sys.stdout.flush()
+        time.sleep(0.1)  # Эмулируем процесс загрузки
+    print('\nЗагрузка завершена.')
