@@ -16,6 +16,7 @@ class DBManager:
         self.conn = psycopg2.connect(**self.params)
         self.cur = self.conn.cursor()
 
+
     def get_companies_and_vacancies_count(self):
         """
         Получает список всех компаний, их ID и количество вакансий у каждой компании.
@@ -29,6 +30,7 @@ class DBManager:
         """)
         return self.cur.fetchall()
 
+
     def get_all_vacancies(self):
         """
         Получает список всех вакансий с указанием названия компании, названия вакансии и зарплаты и ссылки на вакансию.
@@ -40,6 +42,7 @@ class DBManager:
             JOIN employers e ON e.id = v.employer_id
         """)
         return self.cur.fetchall()
+
 
     def get_vacancies_by_company_id(self, company_id):
         """
@@ -55,6 +58,7 @@ class DBManager:
         """, (str(company_id),))
         return self.cur.fetchall()
 
+
     def get_avg_salary(self):
         """
         Получает среднюю зарплату по вакансиям.
@@ -66,6 +70,7 @@ class DBManager:
             WHERE salary_from IS NOT NULL AND salary_to IS NOT NULL
         """)
         return int(self.cur.fetchone()[0])
+
 
     def get_vacancies_with_higher_salary(self):
         """
@@ -81,6 +86,7 @@ class DBManager:
         """, (avg_salary,))
         return self.cur.fetchall()
 
+
     def get_vacancies_with_keyword(self, keyword):
         """
         Получает список всех вакансий, в названии которых содержатся переданные в метод слова.
@@ -94,6 +100,7 @@ class DBManager:
             WHERE v.name ILIKE %s
         """, (f'%{keyword}%',))
         return self.cur.fetchall()
+
 
     def print_select(self, query):
         """
@@ -109,6 +116,7 @@ class DBManager:
         table = tabulate(results, headers=colnames, tablefmt="grid")
         return '\n' + table
 
+
     def print_companies_and_vacancies_count(self):
         """
         Метод выводит компании и количество вакансий в виде таблицы.
@@ -118,6 +126,7 @@ class DBManager:
 
         table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
         return table
+
 
     def print_all_vacancies(self):
         """
@@ -130,6 +139,7 @@ class DBManager:
         table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
         return table
 
+
     def print_vacancies_with_higher_salary(self):
         """
         Метод выводит в виден таблицы вакансий, у которых зарплата выше средней по всем вакансиям.
@@ -139,6 +149,7 @@ class DBManager:
 
         table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
         return table
+
 
     def print_vacancies_with_keyword(self, keyword):
         """
@@ -150,6 +161,7 @@ class DBManager:
         table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
         return table
 
+
     def print_vacancies_by_company_id(self, company_id):
         """
         Метод выводит в виде таблицы вакансии указанной компании по ее ID.
@@ -160,6 +172,7 @@ class DBManager:
 
         table = tabulate(results, headers=colnames, tablefmt="fancy_grid")
         return table
+
 
     def close(self):
         """
