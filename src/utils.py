@@ -34,7 +34,7 @@ def get_vacancies(employer_id):
     if response.status_code == 200:
         return response.json()['items']
     else:
-        raise Exception(f"Error {response.status_code}: {response.text}")
+        raise Exception(f'Error {response.status_code}: {response.text}')
 
 
 def create_tables():
@@ -72,7 +72,7 @@ def create_tables():
         """)
         conn.commit()
     except psycopg2.Error as e:
-        print(f"Error: {e}")
+        print(f'Error: {e}')
     finally:
         if conn:
             conn.close()
@@ -90,7 +90,7 @@ def add_description_column():
         """)
         conn.commit()
     except psycopg2.Error as e:
-        print(f"Error: {e}")
+        print(f'Error: {e}')
     finally:
         if conn:
             conn.close()
@@ -98,9 +98,9 @@ def add_description_column():
 
 def load_employers_to_db(employers, conn):
     """
-    Загружает данные о работодателях в базу данных PostgreSQL в таблицу employers.
+    Загружает данные о работодателях в базу данных PostgresSQL в таблицу employers.
     :param employers: Список данных о работодателях.
-    :param conn: Соединение с базой данных PostgreSQL.
+    :param conn: Соединение с базой данных PostgresSQL.
     """
     with conn.cursor() as cur:
         for employer in employers:
@@ -114,9 +114,9 @@ def load_employers_to_db(employers, conn):
 
 def load_vacancies_to_db(vacancies, conn):
     """
-    Загружает данные о вакансиях в базу данных PostgreSQL в таблицу vacancies.
+    Загружает данные о вакансиях в базу данных PostgresSQL в таблицу vacancies.
     :param vacancies: Словарь, где ключ - идентификатор работодателя, значение - список вакансий.
-    :param conn: Соединение с базой данных PostgreSQL.
+    :param conn: Соединение с базой данных PostgresSQL.
     """
     with conn.cursor() as cur:
         for employer_id, vacs in vacancies.items():
@@ -138,7 +138,7 @@ def load_vacancies_to_db(vacancies, conn):
 
 
 def progress_bar(total):
-    '''Функция вывода на экран прогресс бара загрузки вакансий'''
+    """Функция вывода на экран прогресс бара загрузки вакансий"""
     bar_length = 50
     for i in range(total + 1):
         progress = i / total
