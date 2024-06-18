@@ -21,8 +21,8 @@ poetry install
 
 [postgresql]
 host=localhost
-user=postgres
-password=1q2w3e
+user=myuser
+password=mypassword
 port=5432
 
 Использование:
